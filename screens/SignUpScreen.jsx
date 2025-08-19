@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, FlatList, Modal } from 'react-native'
-import React, {useState } from 'react'
+import React, {use, useState } from 'react'
 import { fonts } from '../utils/fonts'
 import { colors } from '../utils/colors'
 import { useNavigation } from '@react-navigation/native'
@@ -17,6 +17,17 @@ const countries = countriesList
 const states = statesList
 export default function SignUpScreen() {
   const navigation = useNavigation()
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const phoneNumberRegex = /^\+?[1-9][0-9]{7,14}$/
+
+  const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState()
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+
   const [selectedCountry, setSelectedCountry] = useState('Select Country')
   const [isClicked, setIsClicked] = useState(false)
   const [data, setData] = useState(countries)
@@ -65,6 +76,37 @@ export default function SignUpScreen() {
     console.log('back tapped')
   }
 
+  const [errors, setErrors] = useState({})
+
+  const validateForm = () => {
+    let errors = ({})
+    if (!email.trim())
+      errors.email = 'Email is required'
+    if (!firstName.trim())
+      errors.firstName = 'First name is required'
+    if (!password.trim())
+      errors.password = 'Password is required'
+    if (!confirmPassword.trim())
+      errors.confirmPassword = 'Confirm password is required'
+    if (password.trim() != confirmPassword.trim())
+      errors.confirmPassword = 'Password is not matching'
+    if (!phoneNumberRegex.test(phoneNumber.trim()))
+      errors.phoneNumber = 'Enter a valid phone number'
+
+    setErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const signUpTapped = () => {
+    if (validateForm()) {
+      setErrors({})
+      setEmail('')
+      setFirstName('')
+      setPassword('')
+      setConfirmPassword('')
+    }
+  }
+
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity style={styles.backButtonWrapper} onPress={backTapped}>
@@ -88,17 +130,23 @@ export default function SignUpScreen() {
           </TouchableOpacity>
         </View>
 
-        <InputFieldComponent placeholder={"Enter your email"} keyboardType={"email-address"}/>
-        <InputFieldComponent placeholder={"Enter your first name"} keyboardType={"default"}/>
-        <InputFieldComponent placeholder={"Enter your last name"} keyboardType={"default"}/>
-        <InputFieldComponent placeholder={"Enter your phone number"} keyboardType={"phone-pad"}/>
-        <InputFieldComponent placeholder={"Enter your password"} keyboardType={"phone-pad"} secureTextEntry={true}/>
-        
+        <InputFieldComponent placeholder={"Enter your email"} keyboardType={"email-address"} value={email} onChangeText={setEmail}/>
+        {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+        <InputFieldComponent placeholder={"Enter your first name"} keyboardType={"default"} value={firstName} onChangeText={setFirstName}/>
+        {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
+        <InputFieldComponent placeholder={"Enter your last name"} keyboardType={"default"} value={lastName} onChangeText={setLastName}/>
+        <InputFieldComponent placeholder={"Enter your phone number"} keyboardType={"phone-pad"} value={phoneNumber} onChangeText={setPhoneNumber}/>
+        {errors.phoneNumber ? <Text style={styles.errorText}>{errors.phoneNumber}</Text> : null}
+        <InputFieldComponent placeholder={"Enter your password"} keyboardType={"default"} secureTextEntry={true} value={password} onChangeText={setPassword}/>
+        {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.textInput}
-            placeholder="Enter your password"
+            placeholder="Confirm password"
             secureTextEntry={secureEntry}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+
           />
           <TouchableOpacity
             onPress={() => {
@@ -110,6 +158,7 @@ export default function SignUpScreen() {
           <FontAwesome6 name="eye" size={20} color={colors.secondary} />
           </TouchableOpacity>
         </View>
+        {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
         <View style={styles.inputContainer}>
           <Text style={styles.text}>{date.toDateString()}</Text>
           <TouchableOpacity onPress={() => setOpen(true)}>
@@ -146,7 +195,7 @@ export default function SignUpScreen() {
 
         <TouchableOpacity
           style={styles.signUpButtonWrapper}
-          onPress={backTapped}
+          onPress={signUpTapped}
         >
           <Text style={styles.signUpText}>Sign Up</Text>
         </TouchableOpacity>
@@ -244,5 +293,10 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     alignItems: 'center'
+  },
+  errorText: {
+    fontStyle: 'italic',
+    color: 'red',
+    marginLeft: 30,
   }
 })

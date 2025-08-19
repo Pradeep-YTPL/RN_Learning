@@ -4,16 +4,50 @@ import { fonts } from '../utils/fonts'
 import { colors } from '../utils/colors'
 import { useNavigation } from '@react-navigation/native'
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6'
+import InputFieldComponent from '../components/InputFieldComponent'
 
 
 export default function LoginScreen() {
   const navigation = useNavigation()
   const [secureEntry, setSecureEntry] = useState(true)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const [errors, setErrors] = useState({})
+
+  const validateForm = () => {
+    let errors = {}
+    if (!email.trim())
+      errors.email = 'Email is required'
+    if(!password.trim())  
+      errors.password = 'Password is required'
+    if(!emailRegex.test(email.trim()))
+      errors.email = 'Enter a valid email'
+
+    setErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   const backTapped = () => {
     navigation.goBack()
     console.log('back tapped')
   }
+
+  const loginTapped = () => {
+    if(validateForm()) {
+      console.log('login success')
+      setEmail('')
+      setPassword('')
+      setErrors({})
+    }
+    else {
+      console.log(errors.email)
+    }
+
+  }
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButtonWrapper} onPress={backTapped}>
@@ -24,18 +58,16 @@ export default function LoginScreen() {
         <Text style={styles.titleText}>Welcome Back</Text>
       </View>
       <View style={styles.formContainer}>
+        <InputFieldComponent placeholder='Enter your email' keyboardType='email-address' value={email} onChangeText={setEmail}/>
+        {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
         <View style={styles.inputContainer}>
-          <FontAwesome6 name="envelope" size={30} color={colors.secondary} />
-          <TextInput style={styles.textInput} placeholder='Enter your email' keyboardType='email-address'/>
-        </View>
-        <View style={styles.inputContainer}>
-          <FontAwesome6 name="square" size={30} color={colors.secondary} />
-          <TextInput style={styles.textInput} placeholder='Enter your Password' secureTextEntry={secureEntry}/>
+          <TextInput style={styles.textInput} placeholder='Enter your Password' secureTextEntry={secureEntry} value={password} onChangeText={setPassword}/>
           <TouchableOpacity onPress={() => {setSecureEntry((prev) => {!prev})}}>
             <FontAwesome6 name="eye" size={20} color={colors.secondary} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.loginButtonWrapper} onPress={backTapped}>
+        {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+        <TouchableOpacity style={styles.loginButtonWrapper} onPress={loginTapped}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
       </View>
@@ -95,5 +127,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: 10,
     height: 50,
+  },
+  errorText: {
+    fontStyle: 'italic',
+    color: 'red',
+    marginLeft: 30,
   }
 })

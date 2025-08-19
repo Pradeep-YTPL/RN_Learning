@@ -10,6 +10,9 @@ const InputFieldComponent = (props) => {
                 style={styles.textInput}
                 placeholder= {props.placeholder}
                 keyboardType={props.keyboardType}
+                value={props.value}
+                onChangeText={props.onChangeText}
+                secureTextEntry={props.secureTextEntry}
               />
     </View>
   )
